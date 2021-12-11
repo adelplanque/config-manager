@@ -20,6 +20,7 @@ LT_INIT
 AC_CONFIG_FILES([
         Makefile
         ext/Makefile
+        src/Makefile
 ])
 
 AC_OUTPUT
