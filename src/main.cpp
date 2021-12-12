@@ -1,6 +1,9 @@
 #include <CLI/CLI.hpp>
 
+#include <boost/algorithm/string.hpp>
+
 #include "settings.h"
+#include "config.h"
 
 
 std::string get_key(const std::string key) {
@@ -14,11 +17,20 @@ std::string get_key(const std::string key) {
     return node->as<std::string>();
 }
 
+
+void append_config_path(const std::string& path) {
+    config_t::get_instance().append_config_path(path);
+}
+
+
 int main(int argc, char** argv)
 {
     CLI::App app{"Manage configuration files"};
 
     std::string key;
+
+    app.add_option_function("--path", std::function<void(const std::string&)>(append_config_path),
+                            "Path to configuration files");
 
     auto get_subcommand = app.add_subcommand("get", "Get config key");
     get_subcommand->add_option("key", key, "Required key");
