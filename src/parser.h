@@ -1,7 +1,12 @@
+#ifndef __parser_h__
+#define __parser_h__
+
 #include <filesystem>
 #include <memory>
 #include <regex>
 #include <string>
+
+#include <iostream>
 
 
 class option_metadata_t
@@ -67,3 +72,5 @@ private:
 
     options_t options;
 };
+
+#endif
