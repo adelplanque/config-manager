@@ -18,6 +18,7 @@ noinst_HEADERS = \
 	CLI11/include/CLI/TypeTools.hpp \
 	CLI11/include/CLI/Validators.hpp \
 	CLI11/include/CLI/Version.hpp \
+	fmt/include/fmt/args.h \
 	fmt/include/fmt/chrono.h \
 	fmt/include/fmt/color.h \
 	fmt/include/fmt/compile.h \
@@ -27,9 +28,9 @@ noinst_HEADERS = \
 	fmt/include/fmt/locale.h \
 	fmt/include/fmt/os.h \
 	fmt/include/fmt/ostream.h \
-	fmt/include/fmt/posix.h \
 	fmt/include/fmt/printf.h \
-	fmt/include/fmt/ranges.h
+	fmt/include/fmt/ranges.h \
+	fmt/include/fmt/xchar.h
 
 libfmt_la_CPPFLAGS = -Ifmt/include
 libfmt_la_SOURCES = \
