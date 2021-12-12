@@ -1,6 +1,6 @@
 AUTOMAKE_OPTIONS = subdir-objects
 
-noinst_LTLIBRARIES = libfmt.la
+noinst_LTLIBRARIES = libfmt.la libjinja2cpp.la
 
 noinst_HEADERS = \
 	CLI11/include/CLI/App.hpp \
@@ -18,6 +18,27 @@ noinst_HEADERS = \
 	CLI11/include/CLI/TypeTools.hpp \
 	CLI11/include/CLI/Validators.hpp \
 	CLI11/include/CLI/Version.hpp \
+	Jinja2Cpp/include/jinja2cpp/binding/nlohmann_json.h \
+	Jinja2Cpp/include/jinja2cpp/binding/rapid_json.h \
+	Jinja2Cpp/include/jinja2cpp/config.h \
+	Jinja2Cpp/include/jinja2cpp/error_handler.h \
+	Jinja2Cpp/include/jinja2cpp/error_info.h \
+	Jinja2Cpp/include/jinja2cpp/filesystem_handler.h \
+	Jinja2Cpp/include/jinja2cpp/generic_list.h \
+	Jinja2Cpp/include/jinja2cpp/generic_list_impl.h \
+	Jinja2Cpp/include/jinja2cpp/generic_list_iterator.h \
+	Jinja2Cpp/include/jinja2cpp/reflected_value.h \
+	Jinja2Cpp/include/jinja2cpp/string_helpers.h \
+	Jinja2Cpp/include/jinja2cpp/template.h \
+	Jinja2Cpp/include/jinja2cpp/template_env.h \
+	Jinja2Cpp/include/jinja2cpp/user_callable.h \
+	Jinja2Cpp/include/jinja2cpp/value.h \
+	Jinja2Cpp/include/jinja2cpp/value_ptr.hpp \
+	Jinja2Cpp/thirdparty/nonstd/expected-lite/include/nonstd/expected.hpp \
+	Jinja2Cpp/thirdparty/nonstd/optional-lite/include/nonstd/optional.hpp \
+	Jinja2Cpp/thirdparty/nonstd/string-view-lite/include/nonstd/string_view.hpp \
+	Jinja2Cpp/thirdparty/nonstd/variant-lite/include/nonstd/variant.hpp \
+	Jinja2Cpp/thirdparty/nonstd/variant-lite/template/variant.hpp \
 	fmt/include/fmt/args.h \
 	fmt/include/fmt/chrono.h \
 	fmt/include/fmt/color.h \
@@ -37,8 +58,46 @@ libfmt_la_SOURCES = \
 	fmt/src/format.cc \
 	fmt/src/os.cc
 
+libjinja2cpp_la_SOURCES = \
+	Jinja2Cpp/src/error_info.cpp \
+	Jinja2Cpp/src/expression_evaluator.cpp \
+	Jinja2Cpp/src/expression_parser.cpp \
+	Jinja2Cpp/src/filesystem_handler.cpp \
+	Jinja2Cpp/src/filters.cpp \
+	Jinja2Cpp/src/internal_value.cpp \
+	Jinja2Cpp/src/lexer.cpp \
+	Jinja2Cpp/src/rapid_json_serializer.cpp \
+	Jinja2Cpp/src/serialize_filters.cpp \
+	Jinja2Cpp/src/statements.cpp \
+	Jinja2Cpp/src/string_converter_filter.cpp \
+	Jinja2Cpp/src/template.cpp \
+	Jinja2Cpp/src/template_env.cpp \
+	Jinja2Cpp/src/template_parser.cpp \
+	Jinja2Cpp/src/testers.cpp \
+	Jinja2Cpp/src/value.cpp
+libjinja2cpp_la_CPPFLAGS = \
+	-IJinja2Cpp/include \
+	-IJinja2Cpp/thirdparty/nonstd/string-view-lite/include \
+	-IJinja2Cpp/thirdparty/nonstd/optional-lite/include \
+	-IJinja2Cpp/thirdparty/nonstd/variant-lite/include \
+	-IJinja2Cpp/thirdparty/nonstd/expected-lite/include \
+	-IJinja2Cpp/thirdparty/json/rapid/include \
+	-Ifmt/include
+
 extra_DIST = \
 	CLI11/LICENSE \
 	CLI11/README.md \
+	Jinja2Cpp/LICENSE \
+	Jinja2Cpp/README.md \
+	Jinja2Cpp/thirdparty/json/rapid/license.txt \
+	Jinja2Cpp/thirdparty/json/rapid/readme.md \
+	Jinja2Cpp/thirdparty/nonstd/expected-lite/LICENSE.txt \
+	Jinja2Cpp/thirdparty/nonstd/expected-lite/LICENSE.txt \
+	Jinja2Cpp/thirdparty/nonstd/expected-lite/README.md \
+	Jinja2Cpp/thirdparty/nonstd/expected-lite/README.md \
+	Jinja2Cpp/thirdparty/nonstd/string-view-lite/LICENSE.txt \
+	Jinja2Cpp/thirdparty/nonstd/string-view-lite/README.md \
+	Jinja2Cpp/thirdparty/nonstd/variant-lite/LICENSE.txt \
+	Jinja2Cpp/thirdparty/nonstd/variant-lite/README.md \
 	fmt/LICENSE.rst \
 	fmt/README.rst
