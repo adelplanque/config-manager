@@ -1,6 +1,6 @@
 AUTOMAKE_OPTIONS = subdir-objects
 
-noinst_LTLIBRARIES = libfmt.la libjinja2cpp.la
+noinst_LTLIBRARIES = libfmt.la libjinja2cpp.la libsubprocess.la
 
 noinst_HEADERS = \
 	CLI11/include/CLI/App.hpp \
@@ -51,7 +51,16 @@ noinst_HEADERS = \
 	fmt/include/fmt/ostream.h \
 	fmt/include/fmt/printf.h \
 	fmt/include/fmt/ranges.h \
-	fmt/include/fmt/xchar.h
+	fmt/include/fmt/xchar.h \
+	subprocess/src/cpp/subprocess.hpp \
+	subprocess/src/cpp/subprocess/CowData.hpp \
+	subprocess/src/cpp/subprocess/PipeVar.hpp \
+	subprocess/src/cpp/subprocess/ProcessBuilder.hpp \
+	subprocess/src/cpp/subprocess/basic_types.hpp \
+	subprocess/src/cpp/subprocess/environ.hpp \
+	subprocess/src/cpp/subprocess/pipe.hpp \
+	subprocess/src/cpp/subprocess/shell_utils.hpp \
+	subprocess/src/cpp/subprocess/utf8_to_utf16.hpp
 
 libfmt_la_CPPFLAGS = -Ifmt/include
 libfmt_la_SOURCES = \
@@ -84,6 +93,17 @@ libjinja2cpp_la_CPPFLAGS = \
 	-IJinja2Cpp/thirdparty/json/rapid/include \
 	-Ifmt/include
 
+libsubprocess_la_SOURCES = \
+	subprocess/src/cpp/subprocess/CowData.cpp \
+	subprocess/src/cpp/subprocess/PipeVar.cpp \
+	subprocess/src/cpp/subprocess/ProcessBuilder.cpp \
+	subprocess/src/cpp/subprocess/ProcessBuilder_posix.cpp \
+	subprocess/src/cpp/subprocess/ProcessBuilder_windows.cpp \
+	subprocess/src/cpp/subprocess/environ.cpp \
+	subprocess/src/cpp/subprocess/pipe.cpp \
+	subprocess/src/cpp/subprocess/shell_utils.cpp \
+	subprocess/src/cpp/subprocess/utf8_to_utf16.cpp
+
 extra_DIST = \
 	CLI11/LICENSE \
 	CLI11/README.md \
@@ -100,4 +120,6 @@ extra_DIST = \
 	Jinja2Cpp/thirdparty/nonstd/variant-lite/LICENSE.txt \
 	Jinja2Cpp/thirdparty/nonstd/variant-lite/README.md \
 	fmt/LICENSE.rst \
-	fmt/README.rst
+	fmt/README.rst \
+	subprocess/LICENSE \
+	subprocess/README.md
