@@ -7,14 +7,7 @@
 
 #include "parser.h"
 #include "settings.h"
-
-
-std::list<std::filesystem::path> config_search_paths = {
-    std::filesystem::path("/home/alain/synopsis/config-manager/tests/config-local"),
-    std::filesystem::path("/home/alain/synopsis/config-manager/tests/config-global")
-};
-
-std::string config_name = "OPER";
+#include "config.h"
 
 
 settings_t::settings_ptr settings_t::at(const std::string& key)
@@ -32,7 +25,7 @@ settings_t::settings_ptr settings_t::at(const std::string& key)
 
     std::filesystem::path p = get_path();
     std::cerr << "path: " << p << std::endl;
-    for (const auto& config_path : config_search_paths) {
+    for (const auto& config_path : config_t::get_instance().get_config_path()) {
         if (std::filesystem::is_directory(config_path / p / key)) {
             std::cerr << "Open new direcory: " << (config_path / p / key) << std::endl;
             mapping_t& mapping = std::get<mapping_t>(content_);
@@ -73,7 +66,7 @@ settings_t::settings_ptr settings_t::load_file(const std::string& key)
 {
     parser_t parser;
     std::filesystem::path p = get_path();
-    for (const auto config_path : config_search_paths) {
+    for (const auto& config_path : config_t::get_instance().get_config_path()) {
         auto filename = config_path / p / (key + ".ini");
         std::cerr << "lock for file: " << filename << std::endl;
         if (std::filesystem::is_regular_file(filename)) {
@@ -92,7 +85,8 @@ settings_t::settings_ptr settings_t::load_file(const std::string& key)
     settings_ptr file_settings = get_or_create(key);
     for (auto const& [option_key, option_value] : parser.get_options()) {
         file_settings->get_or_create(option_key.first)
-            ->set_value(option_key.second, option_value->value(config_name));
+            ->set_value(option_key.second,
+                        option_value->value(config_t::get_instance().get_config_name()));
     }
 
     return file_settings;
@@ -135,7 +129,7 @@ void settings_t::load()
     }
     std::set<std::string> filenames;
     std::filesystem::path p = get_path();
-    for (const auto& config_path : config_search_paths) {
+    for (const auto& config_path : config_t::get_instance().get_config_path()) {
         std::cerr << "config_path: " << (config_path / p) << std::endl;
         if (! std::filesystem::is_directory(config_path / p)) {
             continue;

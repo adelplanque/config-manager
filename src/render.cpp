@@ -100,7 +100,7 @@ const std::string render(std::istream& is)
         {"shell", jinja2::MakeCallable(shell, jinja2::ArgInfo("script", true))},
     };
     // try {
-        std::cout << tpl.RenderAsString(params).value() << std::endl;
+    return tpl.RenderAsString(params).value();
     // }
     // catch (const bad_expected_access& e) {
 

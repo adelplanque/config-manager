@@ -16,7 +16,7 @@ const std::regex parser_t::empty_regex {R"(^\s*$)"};
 
 void parser_t::load_file(const std::filesystem::path& filename)
 {
-    std::cout << "parser_t::load_file " << filename << std::endl;
+    std::cerr << "parser_t::load_file " << filename << std::endl;
     std::ifstream is {filename};
     std::string line;
     int lineno = 0;
@@ -24,21 +24,21 @@ void parser_t::load_file(const std::filesystem::path& filename)
     std::smatch m;
     while (getline(is, line)) {
         lineno++;
-        std::cout << "Line: " << line << std::endl;
+        std::cerr << "Line: " << line << std::endl;
         if (std::regex_match(line, empty_regex)) {
             continue;
         }
         if (std::regex_match(line, m, group_regex)) {
-            std::cout << "Group: " << m[1] << std::endl;
+            std::cerr << "Group: " << m[1] << std::endl;
             group = m[1];
             continue;
         }
         if (std::regex_match(line, m, comment_regex)) {
-            std::cout << "Comment: " << m[1] << std::endl;
+            std::cerr << "Comment: " << m[1] << std::endl;
             continue;
         }
         if (std::regex_match(line, m, option_regex)) {
-            std::cout << "Option: key=" << m[1] << ", config=" << m[3]
+            std::cerr << "Option: key=" << m[1] << ", config=" << m[3]
                       << ", value=" << m[4] << std::endl;
             option_metadata_t::ptr option;
             option_key_t key { group, m[1] };

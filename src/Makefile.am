@@ -19,6 +19,7 @@ config_manager_include_HEADERS = \
 	settings.h
 
 config_manager_CPPFLAGS = \
+	$(CODE_COVERAGE_CPPFLAGS) \
 	-I$(top_srcdir)/ext/CLI11/include \
 	-I$(top_srcdir)/ext/Jinja2Cpp/include \
 	-I$(top_srcdir)/ext/Jinja2Cpp/thirdparty/json/rapid/include \
@@ -30,12 +31,12 @@ config_manager_CPPFLAGS = \
 	-I$(top_srcdir)/ext/subprocess/src/cpp
 
 config_manager_LDADD = \
+	$(CODE_CODERAGE_LIBS) -lpthread \
 	$(top_builddir)/ext/libfmt.la \
 	$(top_builddir)/ext/libjinja2cpp.la \
 	$(top_builddir)/ext/libsubprocess.la
 
-config_manager_LDFLAGS = \
-	-lpthread
+config_manager_CXXFLAGS = $(CODE_COVERAGE_CXXFLAGS)
 
 check-syntax:
 	$(CXXCOMPILE) $(config_manager_CPPFLAGS) -Wall -fsyntax-only $(CHK_SOURCES)

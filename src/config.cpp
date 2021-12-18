@@ -36,6 +36,6 @@ config_t::config_t()
 
 void config_t::append_config_path(const std::string& path)
 {
-    std::cout << "Append path: " << path << std::endl;
+    std::cerr << "Append path: " << path << std::endl;
     config_path.push_front(path);
 }

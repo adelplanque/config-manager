@@ -14,11 +14,12 @@ public:
         if (config_t::instance == nullptr) {
             config_t::instance = new config_t();
         }
-        std::cout << "instance: " << config_t::instance << std::endl;
+        std::cerr << "instance: " << config_t::instance << std::endl;
         return *config_t::instance;
     }
 
-    const std::list<std::filesystem::path>& get_config_path() { return config_path; }
+    const std::list<std::filesystem::path>& get_config_path() const { return config_path; }
+    std::string& get_config_name() { return config_name; }
     void append_config_path(const std::string& path);
 
 private:
@@ -26,6 +27,7 @@ private:
     static config_t* instance;
 
     std::list<std::filesystem::path> config_path;
+    std::string config_name;
 };
 
 #endif

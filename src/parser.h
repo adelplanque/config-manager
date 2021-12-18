@@ -21,7 +21,7 @@ public:
     option_metadata_t() {};
 
     void add_value(const std::string& config, const std::string& value) {
-        std::cout << "add_value: config=" << config << ", value=" << value << std::endl;
+        std::cerr << "add_value: config=" << config << ", value=" << value << std::endl;
         values.emplace(config, value);
     };
 

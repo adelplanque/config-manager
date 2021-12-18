@@ -14,7 +14,7 @@ std::string get_key(const std::string key) {
     settings_t::settings_ptr node = settings;
     std::vector<std::string> toks {};
     for (const auto tok: boost::split(toks, key, boost::is_any_of("."))) {
-        std::cout << "node: " << node << std::endl;
+        std::cerr << "node: " << node << std::endl;
         node = node->at(tok);
     }
     return node->as<std::string>();
@@ -35,6 +35,8 @@ int main(int argc, char** argv)
 
     app.add_option_function("--path", std::function<void(const std::string&)>(append_config_path),
                             "Path to configuration files");
+    app.add_option("--config-name", config_t::get_instance().get_config_name(),
+                   "Configuration name");
 
     auto get_subcommand = app.add_subcommand("get", "Get config key");
     get_subcommand->add_option("key", key, "Required key");
