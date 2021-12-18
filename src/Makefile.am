@@ -4,6 +4,7 @@ bin_PROGRAMS = config-manager
 
 config_manager_SOURCES = \
 	config.cpp \
+	env.cpp \
 	main.cpp \
 	parser.cpp \
 	render.cpp \
@@ -11,6 +12,8 @@ config_manager_SOURCES = \
 config_manager_includedir = $(includedir)/config-manager
 config_manager_include_HEADERS = \
 	config.h \
+	env.h \
+	env_reflector.h \
 	parser.h \
 	render.h \
 	settings.h
@@ -23,9 +26,16 @@ config_manager_CPPFLAGS = \
 	-I$(top_srcdir)/ext/Jinja2Cpp/thirdparty/nonstd/optional-lite/include \
 	-I$(top_srcdir)/ext/Jinja2Cpp/thirdparty/nonstd/string-view-lite/include \
 	-I$(top_srcdir)/ext/Jinja2Cpp/thirdparty/nonstd/variant-lite/include \
-	-I$(top_srcdir)/ext/fmt/include
+	-I$(top_srcdir)/ext/fmt/include \
+	-I$(top_srcdir)/ext/subprocess/src/cpp
 
-config_manager_LDADD = $(top_builddir)/ext/libfmt.la $(top_builddir)/ext/libjinja2cpp.la
+config_manager_LDADD = \
+	$(top_builddir)/ext/libfmt.la \
+	$(top_builddir)/ext/libjinja2cpp.la \
+	$(top_builddir)/ext/libsubprocess.la
+
+config_manager_LDFLAGS = \
+	-lpthread
 
 check-syntax:
 	$(CXXCOMPILE) $(config_manager_CPPFLAGS) -Wall -fsyntax-only $(CHK_SOURCES)

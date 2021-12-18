@@ -4,6 +4,7 @@
 #include <map>
 #include <memory>
 #include <variant>
+#include <vector>
 
 #include <boost/lexical_cast.hpp>
 
@@ -30,6 +31,7 @@ class settings_t : public std::enable_shared_from_this<settings_t>
 {
 public:
     typedef std::shared_ptr<settings_t> settings_ptr;
+    enum type_t {mapping, value};
 
 private:
     typedef std::map<std::string, settings_ptr> mapping_t;
@@ -55,6 +57,8 @@ public:
     settings_ptr at(const std::string& key);
     settings_ptr get_or_create(const std::string& key);
     void set_value(const std::string& key, const value_t& value);
+    size_t count(const std::string& key);
+    std::vector<std::string> keys();
 
     template<typename T> T as()
     {
@@ -63,6 +67,15 @@ public:
         }
         catch (const std::bad_variant_access& ex) {
             throw std::out_of_range(fmt::format("Key error: {}", full_name()));
+        }
+    }
+
+    type_t type()
+    {
+        if (std::holds_alternative<mapping_t>(content_)) {
+            return mapping;
+        } else {
+            return value;
         }
     }
 
@@ -76,7 +89,9 @@ private:
     std::string name_;
     settings_ptr parent_;
     content_t content_;
+    bool is_loaded = false;
 
+    void load();
 };
 
 #endif

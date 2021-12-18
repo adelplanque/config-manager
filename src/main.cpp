@@ -1,9 +1,12 @@
-#include <CLI/CLI.hpp>
+#include <fstream>
 
 #include <boost/algorithm/string.hpp>
 
+#include <CLI/CLI.hpp>
+
 #include "settings.h"
 #include "config.h"
+#include "render.h"
 
 
 std::string get_key(const std::string key) {
@@ -28,6 +31,7 @@ int main(int argc, char** argv)
     CLI::App app{"Manage configuration files"};
 
     std::string key;
+    std::string template_filename;
 
     app.add_option_function("--path", std::function<void(const std::string&)>(append_config_path),
                             "Path to configuration files");
@@ -36,6 +40,13 @@ int main(int argc, char** argv)
     get_subcommand->add_option("key", key, "Required key");
     get_subcommand->final_callback([&key]() {
         std::cout << get_key(key) << std::endl;
+    });
+
+    auto render_subcommand = app.add_subcommand("render", "Render template file");
+    render_subcommand->add_option("filename", template_filename, "Template file");
+    render_subcommand->final_callback([&template_filename]() {
+        std::ifstream is { template_filename };
+        render(is);
     });
 
     CLI11_PARSE(app, argc, argv);
