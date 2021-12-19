@@ -12,30 +12,19 @@
 
 settings_t::settings_ptr settings_t::at(const std::string& key)
 {
-    std::cerr << "lock for key: " << key << std::endl;
-    try {
-        mapping_t& mapping = std::get<mapping_t>(content_);
-        if (mapping.count(key)) {
-            return mapping.at(key);
-        }
+    std::cerr << __PRETTY_FUNCTION__ << ": " << key << std::endl;
+    if (! this->is_loaded) {
+        this->load();
     }
-    catch (const std::bad_variant_access& ex) {
+    try {
+        return std::get<mapping_t>(content_).at(key);
+    }
+    catch (const std::bad_variant_access&) {
         throw out_of_range(key);
     }
-
-    std::filesystem::path p = get_path();
-    std::cerr << "path: " << p << std::endl;
-    for (const auto& config_path : config_t::get_instance().get_config_path()) {
-        if (std::filesystem::is_directory(config_path / p / key)) {
-            std::cerr << "Open new direcory: " << (config_path / p / key) << std::endl;
-            mapping_t& mapping = std::get<mapping_t>(content_);
-            settings_ptr dir_settings { new settings_t(key, shared_from_this()) };
-            mapping[key] = dir_settings;
-            return dir_settings;
-        }
+    catch (const std::out_of_range&) {
+        throw out_of_range(key);
     }
-
-    return load_file(key);
 }
 
 std::string settings_t::full_name()
@@ -62,34 +51,28 @@ std::filesystem::path settings_t::get_path()
     return p;
 }
 
-settings_t::settings_ptr settings_t::load_file(const std::string& key)
+void settings_t::load_file()
 {
+    std::cerr << __PRETTY_FUNCTION__ << ": node=" << this->full_name() << std::endl;
+    if (this->parent_ == nullptr) {
+        return;
+    }
     parser_t parser;
+    std::list<std::shared_ptr<std::filesystem::path>> filenames;
     std::filesystem::path p = get_path();
     for (const auto& config_path : config_t::get_instance().get_config_path()) {
-        auto filename = config_path / p / (key + ".ini");
-        std::cerr << "lock for file: " << filename << std::endl;
+        auto node_path = config_path / this->get_path();
+        auto filename = node_path.parent_path() / (node_path.filename().native() + ".ini");
         if (std::filesystem::is_regular_file(filename)) {
-            parser.load_file(filename);
+            parser.load_file(std::make_shared<std::filesystem::path>(std::move(filename)));
         }
     }
 
-    if (parser.empty()) {
-        throw out_of_range(key);
-    }
-
-    if (parser.get_options().empty()) {
-        throw std::out_of_range("");
-    }
-
-    settings_ptr file_settings = get_or_create(key);
     for (auto const& [option_key, option_value] : parser.get_options()) {
-        file_settings->get_or_create(option_key.first)
+        this->get_or_create(option_key.first)
             ->set_value(option_key.second,
                         option_value->value(config_t::get_instance().get_config_name()));
     }
-
-    return file_settings;
 }
 
 settings_t::settings_ptr settings_t::get_or_create(const std::string& key) {
@@ -121,13 +104,17 @@ void settings_t::set_value(const std::string& key, const value_t& value) {
 
 void settings_t::load()
 {
-    std::cerr << __PRETTY_FUNCTION__
-              << ": start (." << full_name() << " at " << this << ")" << std::endl;
+    std::cerr << __PRETTY_FUNCTION__ << full_name() << std::endl;
     if (is_loaded) {
         std::cerr << "nothing to do" << std::endl;
         return;
     }
-    std::set<std::string> filenames;
+
+    // Lookup if this node is a file
+    this->load_file();
+
+    // Scan directory for files or subdirectories for keys
+    std::set<std::string> keys;
     std::filesystem::path p = get_path();
     for (const auto& config_path : config_t::get_instance().get_config_path()) {
         std::cerr << "config_path: " << (config_path / p) << std::endl;
@@ -135,40 +122,24 @@ void settings_t::load()
             continue;
         }
         for (const auto& entry : std::filesystem::directory_iterator(config_path / p)) {
-            std::cerr << "entry: " << entry << std::endl;
             if (entry.is_directory()) {
                 const auto& dir_name = entry.path().filename().native();
                 if (dir_name.find(".") == std::string::npos) {
-                    try {
-                        mapping_t& mapping = std::get<mapping_t>(content_);
-                        if (mapping.count(dir_name) == 0) {
-                                mapping.emplace(dir_name,
-                                                new settings_t(dir_name, shared_from_this()));
-                            }
-                    }
-                    catch (const std::bad_variant_access&) {}
+                    keys.insert(std::move(dir_name));
                 }
             } else if (entry.is_regular_file() && entry.path().extension() == ".ini") {
                 const auto& filename = entry.path().stem().native();
-                std::cerr << "regular file OK, key=" << filename
-                          << " . at " << filename.find(".") << std::endl;
                 if (filename.find(".") == std::string::npos) {
-                    std::cerr << "filename OK" << std::endl;
-                    try {
-                        mapping_t& mapping = std::get<mapping_t>(content_);
-                        if (mapping.count(filename) == 0) {
-                            std::cerr << "Insert " << filename << std::endl;
-                            filenames.insert(filename);
-                        }
-                    }
-                    catch (const std::bad_variant_access&) {}
+                    keys.insert(std::move(filename));
                 }
             }
         }
     }
-    for (const auto& key : filenames) {
+
+    // Create node for keys
+    for (const auto& key : keys) {
         std::cerr << "load filename=" << key << std::endl;
-        load_file(key);
+        this->get_or_create(key);
     }
     is_loaded = true;
     std::cerr << __PRETTY_FUNCTION__ << ": end" << std::endl;
@@ -177,8 +148,6 @@ void settings_t::load()
 size_t settings_t::count(const std::string& key)
 {
     load();
-    std::cerr << "." << full_name() << " loaded" << std::endl;
-    std::cerr << "settings_t::count(" << key << ")" << std::endl;
     try {
         std::cerr << "result: " << std::get<mapping_t>(content_).count(key) << std::endl;
         return std::get<mapping_t>(content_).count(key);

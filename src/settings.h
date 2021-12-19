@@ -42,16 +42,19 @@ public:
     settings_t()
         : parent_(nullptr)
         , content_(mapping_t())
+        , is_loaded(false)
     {};
     settings_t(const std::string name, settings_ptr parent=nullptr)
         : name_(name)
         , parent_(parent)
         , content_(mapping_t())
+        , is_loaded(false)
     {};
     settings_t(const std::string name, value_t value, settings_ptr parent=nullptr)
         : name_(name)
         , parent_(parent)
         , content_(value)
+        , is_loaded(true)
     {};
 
     settings_ptr at(const std::string& key);
@@ -82,16 +85,15 @@ public:
     std::string full_name();
     std::out_of_range out_of_range(const std::string& key);
     std::filesystem::path get_path();
-    settings_ptr load_file(const std::string& key);
-
 
 private:
     std::string name_;
     settings_ptr parent_;
     content_t content_;
-    bool is_loaded = false;
+    bool is_loaded;
 
     void load();
+    void load_file();
 };
 
 #endif

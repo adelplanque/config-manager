@@ -46,18 +46,22 @@ class Tester():
             stderr=subprocess.PIPE,
             env=env,
         )
-        sys.stdout.write(p.stderr.decode("utf-8"))
-        sys.stdout.write("*" * 80 + "\n")
         result = p.stdout.decode("utf-8")
-        diff = difflib.Differ().compare(
-            expected.splitlines(keepends=True), result.splitlines(keepends=True)
-        )
-        sys.stdout.write("--- expected\n")
-        sys.stdout.write("+++ result\n")
-        sys.stdout.writelines(diff)
-        sys.stdout.write("*" * 80 + "\n")
+        if p.returncode == 0 and result == expected:
+            status = True
+        else:
+            diff = difflib.Differ().compare(
+                expected.splitlines(keepends=True), result.splitlines(keepends=True)
+            )
+            sys.stdout.write("--- expected\n")
+            sys.stdout.write("+++ result\n")
+            sys.stdout.writelines(diff)
+            sys.stdout.write("*" * 80 + "\n")
+            sys.stdout.write(p.stderr.decode("utf-8"))
+            sys.stdout.write("*" * 80 + "\n")
+            status = False
         sys.stdout.write("\n")
-        return p.returncode == 0 and not diff
+        return status
 
 
 def main():
