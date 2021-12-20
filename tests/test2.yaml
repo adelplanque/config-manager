@@ -1,0 +1,67 @@
+files:
+  global/config.ini: |
+    [groupa]
+    # This is a documentation for key1
+    key1 = value1
+    key1[OPER] = value1 for oper
+    # Development is simplified with this value
+    key1[DEV] = value for dev
+    # This is another option
+    key2 = value2
+    key2[DEV] = value2 for DEV
+  local/config.ini: |
+    [groupa]
+    # But local configuration use another value
+    key1 = local value1
+
+tests:
+  - command: >-
+      env CONFIG_PATH=${WORKDIR}/local:${WORKDIR}/global
+      ${CONFIG_MANAGER} doc config.groupa.key1
+    expected: |
+      Option config.groupa.key1
+      .........................
+
+      This is a documentation for key1
+      Development is simplified with this value
+
+      But local configuration use another value
+
+      * Defined in file {WORKDIR}/global/config.ini:
+        * key1 = value1
+        * key1[DEV] = value for dev
+        * key1[OPER] = value1 for oper
+
+      * Override in file {WORKDIR}/local/config.ini:
+        * key1 = local value1
+  - command: >-
+      env CONFIG_PATH=${WORKDIR}/local:${WORKDIR}/global
+      ${CONFIG_MANAGER} doc config.groupa
+    expected: |
+      Group config.groupa
+      -------------------
+
+      Option config.groupa.key1
+      .........................
+
+      This is a documentation for key1
+      Development is simplified with this value
+
+      But local configuration use another value
+
+      * Defined in file {WORKDIR}/global/config.ini:
+        * key1 = value1
+        * key1[DEV] = value for dev
+        * key1[OPER] = value1 for oper
+
+      * Override in file {WORKDIR}/local/config.ini:
+        * key1 = local value1
+
+      Option config.groupa.key2
+      .........................
+
+      This is another option
+
+      * Defined in file {WORKDIR}/global/config.ini:
+        * key2 = value2
+        * key2[DEV] = value2 for DEV

@@ -19,18 +19,28 @@ private:
     typedef std::map<std::string, std::string> config_values_t;
     typedef std::pair<std::shared_ptr<std::filesystem::path>, config_values_t> filename_values_t;
     typedef std::list<filename_values_t> values_t;
+    typedef std::map<std::shared_ptr<std::filesystem::path>, std::list<std::string>> comments_t;
 
 public:
-    option_metadata_t() {};
+    option_metadata_t(const std::string& name)
+        : name(name)
+    {};
 
     void add_value(std::shared_ptr<std::filesystem::path> filename,
                    const std::string& config, const std::string& value);
     const std::string& value(const std::string& config) const;
+    void set_comments(std::shared_ptr<std::filesystem::path> filename,
+                      std::list<std::string>&& comments) {
+        std::cerr << "set_comments " << *filename << std::endl;
+        auto& file_comments = this->comments[filename];
+        file_comments.splice(file_comments.end(), comments);
+    }
+    std::string format_doc();
 
 private:
+    std::string name;
     values_t values;
-    std::string doc;
-
+    comments_t comments;
 };
 
 

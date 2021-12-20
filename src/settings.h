@@ -18,8 +18,22 @@
 class value_t
 {
 public:
-    value_t(const std::string& value) : value(value) {};
+    value_t(const std::string& value)
+        : value(value)
+    {}
+    value_t(const std::string& value, option_metadata_t::ptr metadata)
+        : value(value)
+        , metadata(metadata)
+    {}
+    value_t(value_t&& other)
+        : value(std::move(other.value))
+        , metadata(other.metadata)
+    {
+        std::cerr << "value_t move contructor" << std::endl;
+    }
+
     template<typename T> T as() { return boost::lexical_cast<T>(value); }
+    std::string doc() { return metadata ? metadata->format_doc() : ""; }
 
 private:
     std::string value;
@@ -50,18 +64,19 @@ public:
         , content_(mapping_t())
         , is_loaded(false)
     {};
-    settings_t(const std::string name, value_t value, settings_ptr parent=nullptr)
+    settings_t(const std::string name, value_t&& value, settings_ptr parent=nullptr)
         : name_(name)
         , parent_(parent)
-        , content_(value)
+        , content_(std::move(value))
         , is_loaded(true)
     {};
 
     settings_ptr at(const std::string& key);
     settings_ptr get_or_create(const std::string& key);
-    void set_value(const std::string& key, const value_t& value);
+    void set_value(const std::string& key, value_t&& value);
     size_t count(const std::string& key);
     std::vector<std::string> keys();
+    void doc(std::ostream& os);
 
     template<typename T> T as()
     {

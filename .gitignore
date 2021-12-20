@@ -1,5 +1,10 @@
+*.gcda
+*.gcno
+*.la
+*.o
 *~
 .deps
+.libs
 /aclocal.m4
 /autom4te.cache
 /build-aux

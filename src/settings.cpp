@@ -30,10 +30,10 @@ settings_t::settings_ptr settings_t::at(const std::string& key)
 std::string settings_t::full_name()
 {
     std::string name = (parent_ == nullptr) ? "" : parent_->full_name();
-    if (! name_.empty()) {
+    if (! name.empty()) {
         name.append(".");
-        name.append(name_);
     }
+    name.append(name_);
     return name;
 }
 
@@ -68,10 +68,11 @@ void settings_t::load_file()
         }
     }
 
-    for (auto const& [option_key, option_value] : parser.get_options()) {
+    for (auto const& [option_key, option_metadata] : parser.get_options()) {
         this->get_or_create(option_key.first)
             ->set_value(option_key.second,
-                        option_value->value(config_t::get_instance().get_config_name()));
+                        value_t(option_metadata->value(config_t::get_instance().get_config_name()),
+                                option_metadata));
     }
 }
 
@@ -92,10 +93,10 @@ settings_t::settings_ptr settings_t::get_or_create(const std::string& key) {
     }
 }
 
-void settings_t::set_value(const std::string& key, const value_t& value) {
+void settings_t::set_value(const std::string& key, value_t&& value) {
     try {
         mapping_t& mapping = std::get<mapping_t>(content_);
-        mapping.emplace(key, new settings_t(key, value, shared_from_this()));
+        mapping.emplace(key, new settings_t(key, std::move(value), shared_from_this()));
     }
     catch (std::bad_variant_access&) {
         throw out_of_range(key);
@@ -169,4 +170,26 @@ std::vector<std::string> settings_t::keys()
         result.push_back(item.first);
     }
     return result;
+}
+
+void settings_t::doc(std::ostream& os)
+{
+    if (this->type() == value) {
+        std::string header = fmt::format("Option {}", this->full_name());
+        os << header << std::endl
+           << std::string( header.size(), '.') << std::endl << std::endl
+           << std::get<value_t>(content_).doc();
+    } else {
+        std::string header = fmt::format("Group {}", this->full_name());
+        os << header << std::endl
+           << std::string(header.size(), '-') << std::endl << std::endl;
+        auto keys = this->keys();
+        std::sort(keys.begin(), keys.end());
+        for (const auto& key : keys) {
+            this->at(key)->doc(os);
+            if (&key != &keys.back()) {
+                os << std::endl;
+            }
+        }
+    }
 }

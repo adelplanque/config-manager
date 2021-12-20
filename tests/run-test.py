@@ -47,6 +47,7 @@ class Tester():
             env=env,
         )
         result = p.stdout.decode("utf-8")
+        expected = expected.format(WORKDIR=self.workdir)
         if p.returncode == 0 and result == expected:
             status = True
         else:
