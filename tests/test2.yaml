@@ -4,11 +4,16 @@ files:
     # This is a documentation for key1
     key1 = value1
     key1[OPER] = value1 for oper
-    # Development is simplified with this value
+    # For developpement config we use another value.
     key1[DEV] = value for dev
     # This is another option
     key2 = value2
     key2[DEV] = value2 for DEV
+    # This comment is for groupb
+    [groupb]
+    # Comment for groupb.key
+    key = value
+    [groupc]
   local/config.ini: |
     [groupa]
     # But local configuration use another value
@@ -23,7 +28,8 @@ tests:
       .........................
 
       This is a documentation for key1
-      Development is simplified with this value
+
+      For developpement config we use another value.
 
       But local configuration use another value
 
@@ -45,7 +51,8 @@ tests:
       .........................
 
       This is a documentation for key1
-      Development is simplified with this value
+
+      For developpement config we use another value.
 
       But local configuration use another value
 
@@ -65,3 +72,25 @@ tests:
       * Defined in file {WORKDIR}/global/config.ini:
         * key2 = value2
         * key2[DEV] = value2 for DEV
+  - command: >-
+      env CONFIG_PATH=${WORKDIR}/local:${WORKDIR}/global
+      ${CONFIG_MANAGER} doc config.groupb
+    expected: |
+      Group config.groupb
+      -------------------
+
+      This comment is for groupb
+
+      Option config.groupb.key
+      ........................
+
+      Comment for groupb.key
+
+      * Defined in file {WORKDIR}/global/config.ini:
+        * key = value
+  - command: >-
+      env CONFIG_PATH=${WORKDIR}/local:${WORKDIR}/global
+      ${CONFIG_MANAGER} doc config.groupc
+    expected: |
+      Group config.groupc
+      -------------------

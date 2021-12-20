@@ -21,23 +21,23 @@ public:
     value_t(const std::string& value)
         : value(value)
     {}
-    value_t(const std::string& value, option_metadata_t::ptr metadata)
+    value_t(const std::string& value, option_values_t&& config_values)
         : value(value)
-        , metadata(metadata)
-    {}
+        , config_values(std::move(config_values))
+    { std::cerr << __PRETTY_FUNCTION__ << ": done" << std::endl; }
     value_t(value_t&& other)
         : value(std::move(other.value))
-        , metadata(other.metadata)
+        , config_values(std::move(other.config_values))
     {
         std::cerr << "value_t move contructor" << std::endl;
     }
 
     template<typename T> T as() { return boost::lexical_cast<T>(value); }
-    std::string doc() { return metadata ? metadata->format_doc() : ""; }
+    std::string format_values() { return config_values.format_values(); }
 
 private:
     std::string value;
-    option_metadata_t::ptr metadata;
+    option_values_t config_values;
 };
 
 
@@ -73,7 +73,7 @@ public:
 
     settings_ptr at(const std::string& key);
     settings_ptr get_or_create(const std::string& key);
-    void set_value(const std::string& key, value_t&& value);
+    void append(const std::string& key, settings_ptr& settings);
     size_t count(const std::string& key);
     std::vector<std::string> keys();
     void doc(std::ostream& os);
@@ -100,12 +100,14 @@ public:
     std::string full_name();
     std::out_of_range out_of_range(const std::string& key);
     std::filesystem::path get_path();
+    void set_comments(comments_t&& comments) { this->comments = std::move(comments); }
 
 private:
     std::string name_;
     settings_ptr parent_;
     content_t content_;
     bool is_loaded;
+    comments_t comments;
 
     void load();
     void load_file();

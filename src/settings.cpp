@@ -5,6 +5,8 @@
 #include <string>
 #include <set>
 
+#include <boost/range/adaptor/reversed.hpp>
+
 #include "parser.h"
 #include "settings.h"
 #include "config.h"
@@ -29,12 +31,13 @@ settings_t::settings_ptr settings_t::at(const std::string& key)
 
 std::string settings_t::full_name()
 {
-    std::string name = (parent_ == nullptr) ? "" : parent_->full_name();
-    if (! name.empty()) {
-        name.append(".");
+    std::string result = (parent_ == nullptr) ? "" : parent_->full_name();
+    if (! result.empty()) {
+        result.append(".");
     }
-    name.append(name_);
-    return name;
+    result.append(name_);
+    std::cerr << __PRETTY_FUNCTION__ << ": name=" << name_ << ", result=" << result << std::endl;
+    return result;
 }
 
 std::out_of_range settings_t::out_of_range(const std::string& key) {
@@ -60,7 +63,8 @@ void settings_t::load_file()
     parser_t parser;
     std::list<std::shared_ptr<std::filesystem::path>> filenames;
     std::filesystem::path p = get_path();
-    for (const auto& config_path : config_t::get_instance().get_config_path()) {
+    for (const auto& config_path
+             : boost::adaptors::reverse(config_t::get_instance().get_config_path())) {
         auto node_path = config_path / this->get_path();
         auto filename = node_path.parent_path() / (node_path.filename().native() + ".ini");
         if (std::filesystem::is_regular_file(filename)) {
@@ -68,11 +72,22 @@ void settings_t::load_file()
         }
     }
 
-    for (auto const& [option_key, option_metadata] : parser.get_options()) {
-        this->get_or_create(option_key.first)
-            ->set_value(option_key.second,
-                        value_t(option_metadata->value(config_t::get_instance().get_config_name()),
-                                option_metadata));
+    const auto& config_name = config_t::get_instance().get_config_name();
+    for (auto& [group_name, group] : parser.get_options()) {
+        auto& [group_comments, group_map] = group;
+        auto group_settings = this->get_or_create(group_name);
+        group_settings->set_comments(std::move(group_comments));
+        for (auto& [option_name, option] : group_map) {
+            auto& [option_comments, option_values] = option;
+            auto option_settings
+                = std::make_shared<settings_t>
+                (option_name,
+                 value_t(option_values.value(config_name), std::move(option_values)),
+                 group_settings
+                 );
+            group_settings->append(option_name, option_settings);
+            option_settings->set_comments(std::move(option_comments));
+        }
     }
 }
 
@@ -93,10 +108,10 @@ settings_t::settings_ptr settings_t::get_or_create(const std::string& key) {
     }
 }
 
-void settings_t::set_value(const std::string& key, value_t&& value) {
+void settings_t::append(const std::string& key, settings_t::settings_ptr& settings) {
     try {
         mapping_t& mapping = std::get<mapping_t>(content_);
-        mapping.emplace(key, new settings_t(key, std::move(value), shared_from_this()));
+        mapping.emplace(key, settings);
     }
     catch (std::bad_variant_access&) {
         throw out_of_range(key);
@@ -117,8 +132,8 @@ void settings_t::load()
     // Scan directory for files or subdirectories for keys
     std::set<std::string> keys;
     std::filesystem::path p = get_path();
-    for (const auto& config_path : config_t::get_instance().get_config_path()) {
-        std::cerr << "config_path: " << (config_path / p) << std::endl;
+    for (const auto& config_path
+             : boost::adaptors::reverse(config_t::get_instance().get_config_path())) {
         if (! std::filesystem::is_directory(config_path / p)) {
             continue;
         }
@@ -139,7 +154,6 @@ void settings_t::load()
 
     // Create node for keys
     for (const auto& key : keys) {
-        std::cerr << "load filename=" << key << std::endl;
         this->get_or_create(key);
     }
     is_loaded = true;
@@ -150,7 +164,6 @@ size_t settings_t::count(const std::string& key)
 {
     load();
     try {
-        std::cerr << "result: " << std::get<mapping_t>(content_).count(key) << std::endl;
         return std::get<mapping_t>(content_).count(key);
     }
     catch (const std::bad_variant_access&) {
@@ -177,18 +190,27 @@ void settings_t::doc(std::ostream& os)
     if (this->type() == value) {
         std::string header = fmt::format("Option {}", this->full_name());
         os << header << std::endl
-           << std::string( header.size(), '.') << std::endl << std::endl
-           << std::get<value_t>(content_).doc();
+           << std::string(header.size(), '.') << std::endl << std::endl;
+        if (this->comments.size() > 0) {
+            os << this->comments.format() << std::endl;
+        }
+        os << std::get<value_t>(content_).format_values();
     } else {
         std::string header = fmt::format("Group {}", this->full_name());
         os << header << std::endl
-           << std::string(header.size(), '-') << std::endl << std::endl;
+           << std::string(header.size(), '-') << std::endl;
+        if (this->comments.size() > 0) {
+            os << std::endl << this->comments.format();
+        }
         auto keys = this->keys();
-        std::sort(keys.begin(), keys.end());
-        for (const auto& key : keys) {
-            this->at(key)->doc(os);
-            if (&key != &keys.back()) {
-                os << std::endl;
+        if (! keys.empty()) {
+            os << std::endl;
+            std::sort(keys.begin(), keys.end());
+            for (const auto& key : keys) {
+                this->at(key)->doc(os);
+                if (&key != &keys.back()) {
+                    os << std::endl;
+                }
             }
         }
     }

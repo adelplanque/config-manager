@@ -9,6 +9,8 @@ AC_CONFIG_HEADERS([config.h])
 AM_INIT_AUTOMAKE([foreign -Wall -Werror])
 
 AX_CHECK_ENABLE_DEBUG()
+AS_IF([test "x$enable_debug" = "xno"],
+    [CXXFLAGS="${CXXFLAGS} -O3"])
 
 # Compilateurs
 AC_PROG_CXX
