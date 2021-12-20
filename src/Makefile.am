@@ -38,5 +38,7 @@ config_manager_LDADD = \
 
 config_manager_CXXFLAGS = $(CODE_COVERAGE_CXXFLAGS)
 
+config_manager_LDFLAGS = -Wl,--version-script=version.script
+
 check-syntax:
 	$(CXXCOMPILE) $(config_manager_CPPFLAGS) -Wall -fsyntax-only $(CHK_SOURCES)
