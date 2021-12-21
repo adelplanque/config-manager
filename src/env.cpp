@@ -1,3 +1,4 @@
+#include <algorithm>
 #include <cstdlib>
 #include <unistd.h>
 
@@ -39,5 +40,6 @@ std::vector<std::string> environnement_t::keys() const
         }
         result.push_back(std::string(environ[i], end));
     }
+    std::sort(result.begin(), result.end());
     return result;
 }

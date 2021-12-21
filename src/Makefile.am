@@ -40,5 +40,8 @@ config_manager_CXXFLAGS = $(CODE_COVERAGE_CXXFLAGS)
 
 config_manager_LDFLAGS = -Wl,--version-script=version.script
 
+clean-local:
+	rm -rf *.gcda *.gcno
+
 check-syntax:
 	$(CXXCOMPILE) $(config_manager_CPPFLAGS) -Wall -fsyntax-only $(CHK_SOURCES)

@@ -3,8 +3,18 @@ files:
     [group]
     command = my_command
     subcommands = item1 item2 item3
+    [other]
+    key = value
+    [empty]
   templates/tmpl_single.txt: |
     command: {{settings.config.group.command}}
+  templates/tmpl_dump.txt: |
+    {% for group in settings.config -%}
+    [{{group}}]
+    {% for option in settings.config[group] -%}
+    {{option}}={{settings.config[group][option]}}
+    {% endfor -%}
+    {% endfor -%}
   templates/tmpl_split.txt: |
     {% for value in config.group.subcommands.split() %}
     {{settings.config.group.command}}.{{item}}
@@ -16,6 +26,17 @@ tests:
       ${CONFIG_MANAGER} render ${WORKDIR}/templates/tmpl_single.txt
     expected: |
       command: my_command
+  - command: >-
+      env CONFIG_PATH=${WORKDIR}/global
+      ${CONFIG_MANAGER} render ${WORKDIR}/templates/tmpl_dump.txt
+    expected: |
+      [empty]
+      [group]
+      command=my_command
+      subcommands=item1 item2 item3
+      [other]
+      key=value
+
   # - command: >-
   #     env CONFIG_PATH=${WORKDIR}/global
   #     valgrind ${CONFIG_MANAGER} render ${WORKDIR}/templates/tmpl4.txt

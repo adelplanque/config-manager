@@ -1,10 +1,8 @@
 files:
-  global/config.ini: |
-    [group]
-    command = my_command
-    subcommands = item1 item2 item3
   templates/tmpl_echo.txt: |
     {{shell("echo toto")}}
+  templates/tmpl_fail.txt: |
+    {{shell("false")}}
 
 tests:
   - command: >-
@@ -12,3 +10,8 @@ tests:
       ${CONFIG_MANAGER} render ${WORKDIR}/templates/tmpl_echo.txt
     expected: |
       toto
+  - command: >-
+      env CONFIG_PATH=${WORKDIR}/global
+      ${CONFIG_MANAGER} render ${WORKDIR}/templates/tmpl_fail.txt
+    expected: |
+      FAIL!

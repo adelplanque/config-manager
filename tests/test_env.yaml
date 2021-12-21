@@ -6,8 +6,8 @@ files:
   templates/tmpl_single.txt: |
     {{env.MY_VAR}}
   templates/tmpl_loop.txt: |
-    {% for key in env.items %}
-    {{key}={{env[key]}}
+    {% for key in env %}
+    {{key}}={{env[key]}}
     {% endfor %}
 
 tests:
@@ -16,9 +16,10 @@ tests:
       ${CONFIG_MANAGER} render ${WORKDIR}/templates/tmpl_single.txt
     expected: |
       my_value
-  # - command: >-
-  #     env -i CONFIG_PATH=${WORKDIR}/global MY_VAR=my_value
-  #     ${CONFIG_MANAGER} render ${WORKDIR}/templates/tmpl_loop.txt
-  #   expected: |
-  #     CONFIG_PATH={WORKDIR}/global
-  #     MY_VAR=my_value
+  - command: >-
+      env -i CONFIG_PATH=${WORKDIR}/global MY_VAR=my_value
+      ${CONFIG_MANAGER} render ${WORKDIR}/templates/tmpl_loop.txt
+      | grep "CONFIG_PATH\|MY_VAR"
+    expected: |
+      CONFIG_PATH={WORKDIR}/global
+      MY_VAR=my_value

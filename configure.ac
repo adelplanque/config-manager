@@ -40,7 +40,6 @@ AS_IF([test "x$enable_lto" = "xyes" ],
         [CXXFLAGS="${CXXFLAGS} -flto"; LDFLAGS="${LDFLAGS} -flto"],
         [AC_MSG_WARN([lto disabled, not supported])])])
 
-
 AX_CODE_COVERAGE
 AM_PATH_PYTHON([3.6])
 
