@@ -1,0 +1,24 @@
+files:
+  global/config.ini: |
+    [group]
+    command = my_command
+    subcommands = item1 item2 item3
+  templates/tmpl_single.txt: |
+    {{env.MY_VAR}}
+  templates/tmpl_loop.txt: |
+    {% for key in env.items %}
+    {{key}={{env[key]}}
+    {% endfor %}
+
+tests:
+  - command: >-
+      env CONFIG_PATH=${WORKDIR}/global MY_VAR=my_value
+      ${CONFIG_MANAGER} render ${WORKDIR}/templates/tmpl_single.txt
+    expected: |
+      my_value
+  # - command: >-
+  #     env -i CONFIG_PATH=${WORKDIR}/global MY_VAR=my_value
+  #     ${CONFIG_MANAGER} render ${WORKDIR}/templates/tmpl_loop.txt
+  #   expected: |
+  #     CONFIG_PATH={WORKDIR}/global
+  #     MY_VAR=my_value
