@@ -24,7 +24,8 @@ namespace detail
 
         size_t GetSize() const override
         {
-            return 0;
+            auto val = this->GetValue();
+            return (*val)->size();
         }
 
         bool HasValue(const std::string& name) const override
@@ -35,6 +36,9 @@ namespace detail
 
         Value GetValueByName(const std::string& name) const override
         {
+            std::cerr << __PRETTY_FUNCTION__ << ": " << name
+                      << ", node: " << (*this->GetValue())->at(name)->full_name()
+                      << std::endl;
             auto val = this->GetValue();
             return Reflect((*val)->at(name));
         }
@@ -56,11 +60,14 @@ namespace detail
             switch (settings->type())
             {
             case settings_t::type_t::mapping:
+                std::cerr << __PRETTY_FUNCTION__ << ": mapping" << std::endl;
                 result = GenericMap([accessor = SettingsMapAccessor(settings)]() {
                     return &accessor;
                 });
                 break;
             case settings_t::type_t::value:
+                std::cerr << __PRETTY_FUNCTION__
+                          << ": value=" << settings->as<std::string>() << std::endl;
                 result = settings->as<std::string>();
                 break;
             }

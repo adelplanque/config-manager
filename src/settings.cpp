@@ -36,7 +36,6 @@ std::string settings_t::full_name()
         result.append(".");
     }
     result.append(name_);
-    std::cerr << __PRETTY_FUNCTION__ << ": name=" << name_ << ", result=" << result << std::endl;
     return result;
 }
 

@@ -40,13 +40,9 @@ private:
 class comments_t {
 public:
     comments_t() {}
-    comments_t(comments_t&& other) : lines(std::move(other.lines))
-    {
-        std::cerr << __PRETTY_FUNCTION__ << ", lines count: " << this->lines.size() << std::endl;
-    }
+    comments_t(comments_t&& other) : lines(std::move(other.lines)) {}
     comments_t& operator=(comments_t&& other)
     {
-        std::cerr << __PRETTY_FUNCTION__ << ", lines count: " << other.lines.size() << std::endl;
         this->lines = std::move(other.lines);
         return *this;
     };

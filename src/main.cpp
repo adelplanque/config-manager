@@ -58,7 +58,7 @@ int main(int argc, char** argv)
     render_subcommand->add_option("filename", template_filename, "Template file");
     render_subcommand->final_callback([&template_filename]() {
         std::ifstream is { template_filename };
-        render(is);
+        std::cout << render(is);
     });
 
     auto help_subcommand = app.add_subcommand("doc", "Documentation for given key");

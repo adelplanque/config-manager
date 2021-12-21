@@ -1,0 +1,39 @@
+files:
+  global/config.ini: |
+    [group]
+    command = my_command
+    subcommands = item1 item2 item3
+  templates/tmpl1.txt: |
+    {{shell("echo toto")}}
+  templates/tmpl2.txt: |
+    {{env.MY_VAR}}
+  templates/tmpl3.txt: |
+    command: {{settings.config.group.command}}
+  templates/tmpl4.txt: |
+    {% for value in config.group.subcommands.split() %}
+    {{settings.config.group.command}}.{{item}}
+    {% endfor %}
+
+tests:
+  - command: >-
+      env CONFIG_PATH=${WORKDIR}/global
+      ${CONFIG_MANAGER} render ${WORKDIR}/templates/tmpl1.txt
+    expected: |
+      toto
+  - command: >-
+      env CONFIG_PATH=${WORKDIR}/global MY_VAR=my_value
+      ${CONFIG_MANAGER} render ${WORKDIR}/templates/tmpl2.txt
+    expected: |
+      my_value
+  - command: >-
+      env CONFIG_PATH=${WORKDIR}/global
+      ${CONFIG_MANAGER} render ${WORKDIR}/templates/tmpl3.txt
+    expected: |
+      command: my_command
+  # - command: >-
+  #     env CONFIG_PATH=${WORKDIR}/global
+  #     valgrind ${CONFIG_MANAGER} render ${WORKDIR}/templates/tmpl4.txt
+  #   expected: |
+  #     my_command.item1
+  #     my_command.item2
+  #     my_command.item3

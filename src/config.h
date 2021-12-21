@@ -14,7 +14,6 @@ public:
         if (config_t::instance == nullptr) {
             config_t::instance = new config_t();
         }
-        std::cerr << "instance: " << config_t::instance << std::endl;
         return *config_t::instance;
     }
 

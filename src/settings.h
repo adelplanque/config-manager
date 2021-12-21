@@ -24,13 +24,11 @@ public:
     value_t(const std::string& value, option_values_t&& config_values)
         : value(value)
         , config_values(std::move(config_values))
-    { std::cerr << __PRETTY_FUNCTION__ << ": done" << std::endl; }
+    {}
     value_t(value_t&& other)
         : value(std::move(other.value))
         , config_values(std::move(other.config_values))
-    {
-        std::cerr << "value_t move contructor" << std::endl;
-    }
+    {}
 
     template<typename T> T as() { return boost::lexical_cast<T>(value); }
     std::string format_values() { return config_values.format_values(); }
@@ -94,6 +92,18 @@ public:
             return mapping;
         } else {
             return value;
+        }
+    }
+
+    size_t size()
+    {
+        std::cerr << __PRETTY_FUNCTION__ << std::endl;
+        load();
+        if (this->type() == mapping) {
+            std::cerr << __PRETTY_FUNCTION__ << ": " << std::get<mapping_t>(content_).size() << std::endl;
+            return std::get<mapping_t>(content_).size();
+        } else {
+            return 0;
         }
     }
 
