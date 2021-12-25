@@ -78,24 +78,26 @@ export CONFIG_PATH=/path/to/local/config:/path/to/first/plugin/config:/path/to/a
 config-manager render nginx.conf
 ```
 
+Commands
+--------
 
-== Commands ==
+get key
+.......
 
-=== get key ===
+render template
+...............
 
-=== render template ===
+doc key
+.......
 
-=== doc key ===
+Install
+-------
 
+Requirements
+............
 
-== Use cases ==
+Building
+........
 
-
-== Install ==
-
-=== Requirements ===
-
-=== Building ===
-
-
-== License ==
+License
+-------
