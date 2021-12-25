@@ -4,14 +4,15 @@ distributed among different components.
 All configuration directories are viewed as unique one, allowing
 overloading configuration options in multiple levels.
 
-== Use case ==
+Use case
+--------
 
-Or a web server with plugins providing optional services. In the
+Consider a web server with plugins providing optional services. In the
 configuration of nginx, we need to declare backends for each plugin
 and map URLs to those backends.
 
 * Main application configuration:
-  ```
+  ```ini
   # /path/to/application/config/main.ini
   [nginx]
   port = 8080
@@ -19,7 +20,7 @@ and map URLs to those backends.
   ```
 
 * First plugin:
-  ```
+  ```ini
   # /path/to/first/plugin/config/plugins/first_plugin.ini
   [plugin]
   enabled = true
@@ -30,7 +31,7 @@ and map URLs to those backends.
   ```
 
 * Local instance configuration:
-  ```
+  ```ini
   # /path/to/local/config/plugins/first_plugin.ini
   [plugin]
   # To deactivate this plugin on this instance
