@@ -64,6 +64,20 @@ and map URLs to those backends.
       }
     }
 
+We can render the nginx configuration with:
+
+```bash
+config-manager -p /path/to/local/config -p /path/to/first/plugin/config \
+    -p /path/to/application/config render nginx.conf
+```
+
+Or:
+
+```bash
+export CONFIG_PATH=/path/to/local/config:/path/to/first/plugin/config:/path/to/application/config
+config-manager render nginx.conf
+```
+
 
 == Commands ==
 
