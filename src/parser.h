@@ -27,7 +27,7 @@ public:
         , values(std::move(other.values))
     {};
 
-    void add_value(std::shared_ptr<std::filesystem::path> filename,
+    void add_value(const std::shared_ptr<std::filesystem::path>& filename,
                    const std::string& config, const std::string& value);
     const std::string& value(const std::string& config) const;
     std::string format_values();

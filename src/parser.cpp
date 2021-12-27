@@ -35,15 +35,6 @@ void comments_t::append(std::list<std::string>&& lines)
     this->lines.splice(this->lines.end(), lines);
 }
 
-// void comments_t::prepend(std::list<std::string>&& lines)
-// {
-//     dedent(lines);
-//     if (! this->lines.empty()) {
-//         this->lines.push_front("\n");
-//     }
-//     this->lines.splice(this->lines.begin(), lines);
-// }
-
 std::string comments_t::format()
 {
     std::string result;
@@ -81,7 +72,7 @@ std::string option_values_t::format_values()
     return result;
 }
 
-void option_values_t::add_value(std::shared_ptr<std::filesystem::path> filename,
+void option_values_t::add_value(const std::shared_ptr<std::filesystem::path>& filename,
                                 const std::string& config, const std::string& value)
 {
     std::cerr << "option_metadata_t::add_value("
@@ -122,19 +113,33 @@ const std::string& option_values_t::value(const std::string& config) const
 
 // #include <queue>
 
-// class file_queue_t
-// {
-// public:
-//     file_queue_t(const std::filename::path& filename)
-//         : is(filename)
-//     {}
+class file_queue_t
+{
+public:
+    file_queue_t(const std::filesystem::path& filename)
+        : is(filename)
+    {}
+
+    bool getline(std::string& line) {
+        if (q.empty()) {
+            return static_cast<bool>(std::getline(is, line));
+        } else {
+            line = std::move(q.front());
+            q.pop_front();
+            return true;
+        }
+    }
+
+    void rollback(std::string&& line) {
+        q.push_back(std::move(line));
+    }
 
 
-// private:
-//     std::ifstream is;
-//     std::queue<std::string> q;
+private:
+    std::ifstream is;
+    std::list<std::string> q;
 
-// };
+};
 
 const std::regex parser_t::group_regex {R"(^\s*\[([_a-zA-Z]\w*)\]\s*$)"};
 const std::regex parser_t::comment_regex {R"(^\s*[;\#](.*)$)"};
@@ -145,14 +150,15 @@ const std::regex parser_t::empty_regex {R"(^\s*$)"};
 void parser_t::load_file(std::shared_ptr<std::filesystem::path> filename)
 {
     std::cerr << "parser_t::load_file(" << *filename << ")" << std::endl;
-    std::ifstream is { *filename };
+    file_queue_t infile { *filename };
+    // std::ifstream is { *filename };
     std::string line;
     int lineno = 0;
     std::string group_name = "DEFAULT";
     std::smatch m;
     std::list<std::string> comments;
 
-    while (getline(is, line)) {
+    while (infile.getline(line)) {
         lineno++;
         if (std::regex_match(line, empty_regex)) {
             continue;
@@ -172,9 +178,21 @@ void parser_t::load_file(std::shared_ptr<std::filesystem::path> filename)
         if (std::regex_match(line, m, option_regex)) {
             auto& [group_comment, group_map] = options[group_name];
             std::string option_name = m[1];
+            std::string config_name = m[3];
+            std::string value = m[4];
             auto [it, inserted] = group_map.try_emplace(option_name, comments_t(), option_name);
             auto& [option_comments, values] = it->second;
-            values.add_value(filename, m[3], m[4]);
+            size_t indent = line.find_first_not_of(' ');
+            while (infile.getline(line)) {
+                if (line.find_first_not_of(' ') > indent) {
+                    value += '\n';
+                    value += line;
+                } else {
+                    infile.rollback(std::move(line));
+                    break;
+                }
+            }
+            values.add_value(filename, config_name, value);
             if (! comments.empty()) {
                 option_comments.append(std::move(comments));
             }
