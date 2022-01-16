@@ -34,6 +34,29 @@ noinst_HEADERS = \
 	Jinja2Cpp/include/jinja2cpp/user_callable.h \
 	Jinja2Cpp/include/jinja2cpp/value.h \
 	Jinja2Cpp/include/jinja2cpp/value_ptr.hpp \
+	Jinja2Cpp/src/ast_visitor.h \
+	Jinja2Cpp/src/error_handling.h \
+	Jinja2Cpp/src/expression_evaluator.h \
+	Jinja2Cpp/src/expression_parser.h \
+	Jinja2Cpp/src/filters.h \
+	Jinja2Cpp/src/function_base.h \
+	Jinja2Cpp/src/generic_adapters.h \
+	Jinja2Cpp/src/helpers.h \
+	Jinja2Cpp/src/internal_value.h \
+	Jinja2Cpp/src/lexer.h \
+	Jinja2Cpp/src/lexertk.h \
+	Jinja2Cpp/src/out_stream.h \
+	Jinja2Cpp/src/rapid_json_serializer.h \
+	Jinja2Cpp/src/render_context.h \
+	Jinja2Cpp/src/renderer.h \
+	Jinja2Cpp/src/robin_hood.h \
+	Jinja2Cpp/src/statements.h \
+	Jinja2Cpp/src/string_functions.h \
+	Jinja2Cpp/src/template_impl.h \
+	Jinja2Cpp/src/template_parser.h \
+	Jinja2Cpp/src/testers.h \
+	Jinja2Cpp/src/value_helpers.h \
+	Jinja2Cpp/src/value_visitors.h \
 	Jinja2Cpp/thirdparty/nonstd/expected-lite/include/nonstd/expected.hpp \
 	Jinja2Cpp/thirdparty/nonstd/optional-lite/include/nonstd/optional.hpp \
 	Jinja2Cpp/thirdparty/nonstd/string-view-lite/include/nonstd/string_view.hpp \
@@ -79,11 +102,13 @@ libjinja2cpp_la_SOURCES = \
 	Jinja2Cpp/src/serialize_filters.cpp \
 	Jinja2Cpp/src/statements.cpp \
 	Jinja2Cpp/src/string_converter_filter.cpp \
+	Jinja2Cpp/src/string_functions.cpp \
 	Jinja2Cpp/src/template.cpp \
 	Jinja2Cpp/src/template_env.cpp \
 	Jinja2Cpp/src/template_parser.cpp \
 	Jinja2Cpp/src/testers.cpp \
 	Jinja2Cpp/src/value.cpp
+
 libjinja2cpp_la_CPPFLAGS = \
 	-IJinja2Cpp/include \
 	-IJinja2Cpp/thirdparty/nonstd/string-view-lite/include \

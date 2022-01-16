@@ -15,10 +15,6 @@ files:
     {{option}}={{settings.config[group][option]}}
     {% endfor -%}
     {% endfor -%}
-  templates/tmpl_split.txt: |
-    {% for value in config.group.subcommands.split() %}
-    {{settings.config.group.command}}.{{item}}
-    {% endfor %}
 
 tests:
   - command: >-
@@ -36,11 +32,3 @@ tests:
       subcommands=item1 item2 item3
       [other]
       key=value
-
-  # - command: >-
-  #     env CONFIG_PATH=${WORKDIR}/global
-  #     valgrind ${CONFIG_MANAGER} render ${WORKDIR}/templates/tmpl4.txt
-  #   expected: |
-  #     my_command.item1
-  #     my_command.item2
-  #     my_command.item3

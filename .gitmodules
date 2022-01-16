@@ -6,7 +6,7 @@
 	url = https://github.com/CLIUtils/CLI11.git
 [submodule "ext/Jinja2Cpp"]
 	path = ext/Jinja2Cpp
-	url = https://github.com/jinja2cpp/Jinja2Cpp.git
+	url = https://github.com/adelplanque/Jinja2Cpp.git
 [submodule "ext/subprocess"]
 	path = ext/subprocess
 	url = https://github.com/benman64/subprocess.git

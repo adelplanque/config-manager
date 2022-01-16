@@ -1,0 +1,31 @@
+files:
+  global/config.ini: |
+    [group]
+    toks1 = item1 item2 item3
+    toks2 = item1;item2;item3
+    toks3 = item1-item2-item3
+  templates/tmpl_split.txt: |
+    {% for tok in settings.config.group.toks1.split() -%}
+    tok1:{{tok}}
+    {% endfor -%}
+    {% for tok in settings.config.group.toks2.split(";") -%}
+    tok2:{{tok}}
+    {% endfor -%}
+    {% for tok in settings.config.group.toks3.split(delim="-") -%}
+    tok3:{{tok}}
+    {% endfor -%}
+
+tests:
+  - command: >-
+      env CONFIG_PATH=${WORKDIR}/global
+      ${CONFIG_MANAGER} render ${WORKDIR}/templates/tmpl_split.txt
+    expected: |
+      tok1:item1
+      tok1:item2
+      tok1:item3
+      tok2:item1
+      tok2:item2
+      tok2:item3
+      tok3:item1
+      tok3:item2
+      tok3:item3
