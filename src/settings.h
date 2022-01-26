@@ -3,6 +3,7 @@
 
 #include <map>
 #include <memory>
+#include <optional>
 #include <variant>
 #include <vector>
 
@@ -43,12 +44,10 @@ class settings_t : public std::enable_shared_from_this<settings_t>
 {
 public:
     typedef std::shared_ptr<settings_t> settings_ptr;
-    enum type_t {mapping, value};
-
-private:
     typedef std::map<std::string, settings_ptr> mapping_t;
+    typedef std::optional<mapping_t::iterator> iterator;
     typedef std::variant<mapping_t, value_t> content_t;
-    // typedef std::optional<std::variant<mapping_t, value_t>> content_t;
+    enum type_t {mapping, value};
 
 public:
     settings_t()
@@ -78,12 +77,10 @@ public:
 
     template<typename T> T as()
     {
-        try {
+        if (std::holds_alternative<value_t>(content_)) {
             return std::get<value_t>(content_).as<T>();
         }
-        catch (const std::bad_variant_access& ex) {
-            throw std::out_of_range(fmt::format("Key error: {}", full_name()));
-        }
+        throw std::out_of_range(fmt::format("Key error: {}", full_name()));
     }
 
     type_t type()
@@ -111,6 +108,30 @@ public:
     std::out_of_range out_of_range(const std::string& key);
     std::filesystem::path get_path();
     void set_comments(comments_t&& comments) { this->comments = std::move(comments); }
+
+    iterator begin()
+    {
+        if (! this->is_loaded) {
+            this->load();
+        }
+        if (std::holds_alternative<mapping_t>(this->content_)) {
+            return std::get<mapping_t>(this->content_).begin();
+        } else {
+            return std::nullopt;
+        }
+    }
+
+    iterator end()
+    {
+        if (! this->is_loaded) {
+            this->load();
+        }
+        if (std::holds_alternative<mapping_t>(this->content_)) {
+            return std::get<mapping_t>(this->content_).end();
+        } else {
+            return std::nullopt;
+        }
+    }
 
 private:
     std::string name_;
