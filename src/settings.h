@@ -1,3 +1,19 @@
+// Copyright (C) 2022 Alain Delplanque
+
+// This program is free software; you can redistribute it and/or
+// modify it under the terms of the GNU Lesser General Public
+// License as published by the Free Software Foundation; either
+// version 3 of the License, or (at your option) any later version.
+
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+// Lesser General Public License for more details.
+
+// You should have received a copy of the GNU Lesser General Public License
+// along with this program; if not, write to the Free Software Foundation,
+// Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
+
 #ifndef __settings_h__
 #define __settings_h__
 
@@ -32,6 +48,7 @@ public:
     {}
 
     template<typename T> T as() { return boost::lexical_cast<T>(value); }
+    std::string& get() { return this->value; }
     std::string format_values() { return config_values.format_values(); }
 
 private:
@@ -92,6 +109,8 @@ public:
         }
     }
 
+    template<typename T> bool is() { return std::holds_alternative<T>(this->content_); }
+
     size_t size()
     {
         std::cerr << __PRETTY_FUNCTION__ << std::endl;
@@ -107,6 +126,10 @@ public:
     std::string full_name();
     std::out_of_range out_of_range(const std::string& key);
     std::filesystem::path get_path();
+    settings_ptr get_root()
+    {
+        return (this->parent_ == nullptr) ? shared_from_this() : this->parent_->get_root();
+    }
     void set_comments(comments_t&& comments) { this->comments = std::move(comments); }
 
     iterator begin()

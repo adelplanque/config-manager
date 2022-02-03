@@ -1,7 +1,9 @@
 TESTS = \
 	test_doc.yaml \
 	test_env.yaml \
+	test_errors.yaml \
 	test_get.yaml \
+	test_recursive.yaml \
 	test_render.yaml \
 	test_shell.yaml \
 	test_strings.yaml

@@ -876,6 +876,14 @@ INPUT                  = ../ext/CLI11/include/CLI \
                          ../ext/Jinja2Cpp/thirdparty/nonstd/variant-lite/template \
                          ../ext/subprocess/src \
                          ../src
+                         # /usr/include/boost/core \
+                         # /usr/include/boost/iterator \
+                         # /usr/include/boost/mpl \
+                         # /usr/include/boost/type_trait \
+                         # /usr/include/boost/variant \
+                         # /usr/include/boost/config.hpp \
+                         # /usr/include/boost/static_assert.hpp \
+                         # /usr/include/boost/unordered_map.hpp
 
 # This tag can be used to specify the character encoding of the source files
 # that doxygen parses. Internally doxygen uses the UTF-8 encoding. Doxygen uses
@@ -2222,7 +2230,10 @@ INCLUDE_PATH           = ../ext/Jinja2Cpp/include \
                          ../ext/Jinja2Cpp/thirdparty/nonstd/variant-lite/include \
                          ../ext/Jinja2Cpp/thirdparty/nonstd/expected-lite/include \
                          ../ext/Jinja2Cpp/thirdparty/json/rapid/include \
-                         ../ext/fmt/include
+                         ../ext/fmt/include \
+                         /usr/include/x86_64-linux-gnu/c++/10 \
+                         /usr/include/c++/10 \
+                         /usr/include
 
 
 # You can use the INCLUDE_FILE_PATTERNS tag to specify one or more wildcard

@@ -1,3 +1,22 @@
+// Copyright (C) 2022 Alain Delplanque
+
+// This program is free software; you can redistribute it and/or
+// modify it under the terms of the GNU Lesser General Public
+// License as published by the Free Software Foundation; either
+// version 3 of the License, or (at your option) any later version.
+
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+// Lesser General Public License for more details.
+
+// You should have received a copy of the GNU Lesser General Public License
+// along with this program; if not, write to the Free Software Foundation,
+// Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
+
+#include <list>
+#include <sstream>
+
 #include <boost/algorithm/string.hpp>
 
 #include <jinja2cpp/reflected_value.h>
@@ -9,73 +28,6 @@
 #include "env_reflector.h"
 #include "render.h"
 #include "settings.h"
-
-
-namespace jinja2
-{
-namespace detail
-{
-    class SettingsMapAccessor : public MapItemAccessor
-                           , public ReflectedDataHolder<settings_t::settings_ptr>
-    {
-    public:
-        using ReflectedDataHolder<settings_t::settings_ptr>::ReflectedDataHolder;
-        ~SettingsMapAccessor() override = default;
-
-        size_t GetSize() const override
-        {
-            auto val = this->GetValue();
-            return (*val)->size();
-        }
-
-        bool HasValue(const std::string& name) const override
-        {
-            auto val = this->GetValue();
-            return (*val)->count(name);
-        }
-
-        Value GetValueByName(const std::string& name) const override
-        {
-            std::cerr << __PRETTY_FUNCTION__ << ": " << name
-                      << ", node: " << (*this->GetValue())->at(name)->full_name()
-                      << std::endl;
-            auto val = this->GetValue();
-            return Reflect((*val)->at(name));
-        }
-
-        std::vector<std::string> GetKeys() const override
-        {
-            std::cerr << __PRETTY_FUNCTION__ << ": start" << std::endl;
-            return (*this->GetValue())->keys();
-        }
-
-    };
-
-    template<>
-    struct Reflector<settings_t::settings_ptr>
-    {
-        static Value Create(settings_t::settings_ptr settings)
-        {
-            Value result;
-            switch (settings->type())
-            {
-            case settings_t::type_t::mapping:
-                std::cerr << __PRETTY_FUNCTION__ << ": mapping" << std::endl;
-                result = GenericMap([accessor = SettingsMapAccessor(settings)]() {
-                    return &accessor;
-                });
-                break;
-            case settings_t::type_t::value:
-                std::cerr << __PRETTY_FUNCTION__
-                          << ": value=" << settings->as<std::string>() << std::endl;
-                result = settings->as<std::string>();
-                break;
-            }
-            return result;
-        }
-    };
-}
-}
 
 std::string shell(const std::string& script)
 {
@@ -96,22 +48,104 @@ std::string shell(const std::string& script)
     return result;
 }
 
-const std::string render(std::istream& is)
+
+class Renderer;
+
+struct SettingsProxy
+{
+    // SettingsProxy(settings_t::settings_ptr settings, settings_t::settings_ptr root,
+    //               Renderer& renderer)
+    //     : settings(settings)
+    //     , root(root)
+    //     , renderer(renderer)
+    // {};
+
+    settings_t::settings_ptr settings;
+    settings_t::settings_ptr root;
+    Renderer& renderer;
+};
+
+
+namespace jinja2
+{
+namespace detail
+{
+    class SettingsMapAccessor : public MapItemAccessor
+                              , public ReflectedDataHolder<SettingsProxy>
+    {
+    public:
+        using ReflectedDataHolder<SettingsProxy>::ReflectedDataHolder;
+        ~SettingsMapAccessor() override = default;
+
+        size_t GetSize() const override
+        { return this->GetValue()->settings->size(); }
+
+        bool HasValue(const std::string& name) const override
+        { return this->GetValue()->settings->count(name); }
+
+        Value GetValueByName(const std::string& name) const override
+        {
+            auto val = this->GetValue();
+            SettingsProxy proxy {val->settings->at(name), val->root, val->renderer };
+            return Reflect(proxy);
+        }
+
+        std::vector<std::string> GetKeys() const override
+        { return this->GetValue()->settings->keys(); }
+    };
+
+    template<>
+    struct Reflector<SettingsProxy>
+    {
+        static Value Create(SettingsProxy& proxy)
+        {
+            std::cerr << __PRETTY_FUNCTION__ << ": " << proxy.settings->full_name() << std::endl;
+            Value result;
+            switch (proxy.settings->type())
+            {
+            case settings_t::type_t::mapping:
+                result = GenericMap([accessor = SettingsMapAccessor(proxy)]() {
+                    return &accessor;
+                });
+                break;
+            case settings_t::type_t::value:
+                auto value = proxy.settings->as<std::string>();
+                if (value.find("{{") != std::string::npos
+                    || value.find("{%") != std::string::npos)
+                {
+                    proxy.renderer.push_back(proxy.settings->full_name());
+                    value = proxy.renderer.render(value);
+                    proxy.renderer.pop();
+                }
+                std::cerr << __PRETTY_FUNCTION__ << ": " << proxy.settings->full_name() << " => " << value << std::endl;
+                result = value;
+                break;
+            }
+            return result;
+        }
+    };
+}
+}
+
+Renderer::Renderer(settings_t::settings_ptr settings)
+{
+    SettingsProxy proxy {settings, settings->get_root(), *this};
+    values = jinja2::ValuesMap ({
+                {"env", jinja2::Reflect(environnement_t())},
+                {"settings", jinja2::Reflect(proxy)},
+                {"shell", jinja2::MakeCallable(shell, jinja2::ArgInfo("script", true))},
+        });
+}
+
+std::string Renderer::render(std::istream& is)
 {
     jinja2::Template tpl;
-    tpl.Load(is);
+    tpl.Load(is).value();
     settings_t::settings_ptr settings { new settings_t() };
-    jinja2::ValuesMap params = {
-        {"env", jinja2::Reflect(environnement_t())},
-        {"settings", jinja2::Reflect(settings)},
-        {"shell", jinja2::MakeCallable(shell, jinja2::ArgInfo("script", true))},
-    };
-    // try {
-    return tpl.RenderAsString(params).value();
-    // }
-    // catch (const bad_expected_access& e) {
+    return tpl.RenderAsString(this->values).value();
+}
 
-    // }
-
-    return "toto";
+std::string render(settings_t::settings_ptr settings, std::istream& is)
+{
+    return Renderer(settings).render(is);
 }

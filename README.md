@@ -1,28 +1,33 @@
-`config-manager` allows a unified management of a configuration
-distributed among different components.
+What is it ?
+============
 
-All configuration directories are viewed as unique one, allowing
-overloading configuration options in multiple levels.
+`config-manager` manages the configuration files of several
+independent applications in a global way, allowing to model other
+files.
+
+Different configuration variants can be defined, as well as a local
+overloading of an application instance.
+
 
 Use case
---------
+========
 
 Consider a web server with plugins providing optional services. In the
 configuration of nginx, we need to declare backends for each plugin
 and map URLs to those backends.
 
-* Main application configuration:
+* Main application, installed in `/path/to/application`:
   ```ini
-  # /path/to/application/config/main.ini
+  # /path/to/application/config/application.ini
   [nginx]
   port = 8080
   # ...
   ```
 
-* First plugin:
+* First plugin, installed in `/path/to/first/plugin`:
   ```ini
   # /path/to/first/plugin/config/plugins/first_plugin.ini
-  [plugin]
+  [main]
   enabled = true
   name = my_first_plugin
   [nginx]
@@ -30,10 +35,12 @@ and map URLs to those backends.
   urls = ^/
   ```
 
-* Local instance configuration:
+* Maybe other plugins are installed in their own directory.
+
+* The manager of a local instance overrides the configuration in a separate directory:
   ```ini
   # /path/to/local/config/plugins/first_plugin.ini
-  [plugin]
+  [main]
   # To deactivate this plugin on this instance
   enabled = false
   ```
@@ -41,11 +48,11 @@ and map URLs to those backends.
 * And the nginx configuration
   ```
   http {
-      listen {{settings.main.nginx.port}};
+      listen {{settings.application.nginx.port}};
 
       {% for plugin in settings.plugins %}
-      {% if plugin.plugin.enabled %}
-      upstream {{plugin.plugin.name}} {
+      {% if plugin.main.enabled %}
+      upstream {{plugin.main.name}} {
           server unix:{{plugin.nginx.socket}};
       }
       {% endif %}
@@ -53,10 +60,10 @@ and map URLs to those backends.
 
       server {
           {% for plugin in settings.plugins %}
-          {% if plugin.plugin.enabled %}
-          {% for location in plugin.nginx.locations.split() %}
-          location ~ {{location}} {
-              proxy_pass http://{{plugin.plugin.name}};
+          {% if plugin.main.enabled %}
+          {% for url in plugin.nginx.urls.split() %}
+          location ~ {{url}} {
+              proxy_pass http://{{plugin.main.name}};
           }
           {% endfor %}
           {% endif %}
@@ -78,26 +85,116 @@ export CONFIG_PATH=/path/to/local/config:/path/to/first/plugin/config:/path/to/a
 config-manager render nginx.conf
 ```
 
+
+Configuration file format
+=========================
+
+Each config file is an ini file.
+
+
 Commands
---------
+========
 
-get key
-.......
+* `config-manager get [key]`: Return the value of a key
+* `config-manager render [template]`: Formats the template with
+  configuration values using jinja2 syntax.
+* `config-manager doc [key]`: Shows the documentation of the key as
+  well as its various value overloads.  render template
 
-render template
-...............
 
-doc key
-.......
+Configuration overload
+======================
 
-Install
--------
+Internal to a config file
+-------------------------
+
+It is possible to define variants to the configuration. A value that
+should apply to a specific variant is shown in square brackets.
+
+Exemple:
+
+```ini
+# config.ini
+[main]
+debug = 0
+debug[DEV] = 1
+debug[DEV_JHON] = 2
+```
+
+```bash
+$ config-manager get config.main.debug
+0
+$ config-manager get -c DEV config.main.debug
+1
+$ config-manager get -c DEV_JHON config.main.debug
+2
+$ config-manager get -c DEV_PETER config.main.debug
+1
+```
+
+Note: `DEV_PETER` has no specific configuration, closest is `DEV`
+configuration.
+
+External to a configuration file
+--------------------------------
+
+If the same key is defined in several files, the value retained
+corresponds to that of the first configuration directory in the order
+defined, either by the environment variable `CONFIG_PATH`, or by the
+parameters of the command line.
+
+
+Other features
+==============
+
+Shell call
+----------
+
+It is possible to call system commands an insert stdout in templates:
+
+`{{shell("commande")}}`
+
+Récursive key definition
+------------------------
+
+It is allowed to write
+
+```ini
+# first.ini
+[main]
+key1 = value
+```
+
+```ini
+# second.ini
+[main]
+key1 = {{settings.first.main.key1}}
+key2 = {{settings.second.main.key1}}
+```
+
+
+Configuration documentation
+===========================
+
+
+Installation
+============
 
 Requirements
-............
+------------
 
 Building
-........
+--------
+
 
 License
--------
+=======
+
+config-manager is under LGPL-3.0-or-later.
+
+config-manager embded various third-parties softwares:
+
+* [Jinja2CPP](https://github.com/jinja2cpp/Jinja2Cpp): Mozilla Public License Version 2.0
+* [fmt](https://github.com/fmtlib/fmt): MIT License
+* [CLI11](https://github.com/CLIUtils/CLI11)
+* [subprocess](https://github.com/benman64/subprocess): MIT License

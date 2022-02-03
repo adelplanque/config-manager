@@ -1,3 +1,19 @@
+// Copyright (C) 2022 Alain Delplanque
+
+// This program is free software; you can redistribute it and/or
+// modify it under the terms of the GNU Lesser General Public
+// License as published by the Free Software Foundation; either
+// version 3 of the License, or (at your option) any later version.
+
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+// Lesser General Public License for more details.
+
+// You should have received a copy of the GNU Lesser General Public License
+// along with this program; if not, write to the Free Software Foundation,
+// Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
+
 #include <filesystem>
 #include <list>
 #include <optional>
@@ -7,14 +23,14 @@
 
 #include <boost/range/adaptor/reversed.hpp>
 
-#include "parser.h"
-#include "settings.h"
 #include "config.h"
+#include "parser.h"
+#include "render.h"
+#include "settings.h"
 
 
 settings_t::settings_ptr settings_t::at(const std::string& key)
 {
-    std::cerr << __PRETTY_FUNCTION__ << ": " << key << std::endl;
     if (! this->is_loaded) {
         this->load();
     }
@@ -88,11 +104,32 @@ void settings_t::load_file()
             option_settings->set_comments(std::move(option_comments));
         }
     }
+
+    Renderer r { this->get_root() };
+    for (auto& group : std::get<mapping_t>(this->content_)) {
+        std::cerr << "load_file iter group " << group.first << std::endl;
+        if (! group.second->is<mapping_t>()) {
+            continue;
+        }
+        for (auto& option : std::get<mapping_t>(group.second->content_)) {
+            if (! option.second->is<value_t>()) {
+                continue;
+            }
+            std::cerr << "load_file iter option " << option.first << std::endl;
+            auto& value = std::get<value_t>(option.second->content_).get();
+            if (value.find("{{") != std::string::npos || value.find("{%") != std::string::npos) {
+                std::string initial = value;
+                std::cerr << "load_file: render " << initial << std::endl;
+                value = r.render(value);
+                std::cerr << "load_file: render " << initial << " => " << value << std::endl;
+            }
+        }
+    }
 }
 
 settings_t::settings_ptr settings_t::get_or_create(const std::string& key) {
     try {
-        mapping_t& mapping = std::get<mapping_t>(content_);
+        mapping_t& mapping = std::get<mapping_t>(this->content_);
         try {
             return mapping.at(key);
         }
@@ -119,11 +156,11 @@ void settings_t::append(const std::string& key, settings_t::settings_ptr& settin
 
 void settings_t::load()
 {
-    std::cerr << __PRETTY_FUNCTION__ << full_name() << std::endl;
     if (is_loaded) {
-        std::cerr << "nothing to do" << std::endl;
         return;
     }
+    std::cerr << __PRETTY_FUNCTION__ << ": " << full_name() << ": start" << std::endl;
+    is_loaded = true;
 
     // Lookup if this node is a file
     this->load_file();
@@ -155,8 +192,7 @@ void settings_t::load()
     for (const auto& key : keys) {
         this->get_or_create(key);
     }
-    is_loaded = true;
-    std::cerr << __PRETTY_FUNCTION__ << ": end" << std::endl;
+    std::cerr << __PRETTY_FUNCTION__ << " " << this->full_name() << ": end" << std::endl;
 }
 
 size_t settings_t::count(const std::string& key)
