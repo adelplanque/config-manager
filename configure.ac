@@ -18,6 +18,10 @@ AC_PROG_CC
 AX_CXX_COMPILE_STDCXX([17], [], [mandatory])
 
 # Libtool
+AC_ARG_VAR([AR], [AR command (default is gcc-ar)])
+AC_CHECK_TOOL([AR], [gcc-ar])
+AC_ARG_VAR([RANLIB], [RANLIB command (default is gcc-ranlib)])
+AC_CHECK_TOOL([RANLIB], [gcc-ranlib])
 AM_PROG_AR
 LT_INIT
 
