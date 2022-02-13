@@ -9,8 +9,8 @@ config_manager_SOURCES = \
 	parser.cpp \
 	render.cpp \
 	settings.cpp
-config_manager_includedir = $(includedir)/config-manager
-config_manager_include_HEADERS = \
+
+noinst_HEADERS = \
 	config.h \
 	env.h \
 	env_reflector.h \
@@ -32,13 +32,15 @@ config_manager_CPPFLAGS = \
 
 config_manager_LDADD = \
 	$(CODE_CODERAGE_LIBS) -lpthread \
-	$(top_builddir)/ext/libfmt.la \
 	$(top_builddir)/ext/libjinja2cpp.la \
-	$(top_builddir)/ext/libsubprocess.la
+	$(top_builddir)/ext/libsubprocess.la \
+	$(top_builddir)/ext/libfmt.la
 
 config_manager_CXXFLAGS = $(CODE_COVERAGE_CXXFLAGS)
 
-config_manager_LDFLAGS = -Wl,--version-script=version.script
+config_manager_LDFLAGS = -Wl,--version-script=$(srcdir)/version.script
+
+EXTRA_DIST = version.script
 
 clean-local:
 	rm -rf *.gcda *.gcno
