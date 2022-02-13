@@ -41,7 +41,8 @@ std::string env_to_string(const char* name)
 config_t::config_t()
 {
     std::vector<std::string> paths;
-    boost::split(paths, env_to_string("CONFIG_PATH"), boost::is_any_of(":"));
+    auto env_config_path = env_to_string("CONFIG_PATH");
+    boost::split(paths, env_config_path, boost::is_any_of(":"));
     for (const auto& path: paths) {
         if (! path.empty()) {
             config_path.push_back(path);
