@@ -1,0 +1,18 @@
+files:
+  global/config.ini: |
+    [main]
+    key1 = value1
+  templates/bad_template.txt: |
+    line1
+    line2
+    {{settings.config.main.key1}}
+    {% for i in range(10) endfor %}
+
+
+
+tests:
+  - command: >-
+      env CONFIG_PATH=${WORKDIR}/global
+      ${CONFIG_MANAGER} render ${WORKDIR}/templates/bad_template.txt
+    expected: |
+      toto

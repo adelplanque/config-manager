@@ -1,0 +1,24 @@
+files:
+  config.ini: |
+    [main]
+    debug = 0
+    debug[DEV] = 1
+    debug[DEV_JHON] = 2
+
+tests:
+  - command: >-
+      ${CONFIG_MANAGER} -p ${WORKDIR} get config.main.debug
+    expected: |
+      0
+  - command: >-
+      ${CONFIG_MANAGER} -p ${WORKDIR} -c DEV get config.main.debug
+    expected: |
+      1
+  - command: >-
+      ${CONFIG_MANAGER} -p ${WORKDIR} -c DEV_JHON get config.main.debug
+    expected: |
+      2
+  - command: >-
+      ${CONFIG_MANAGER} -p ${WORKDIR} -c DEV_PETER get config.main.debug
+    expected: |
+      1

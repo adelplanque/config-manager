@@ -1,0 +1,25 @@
+files:
+  config.ini: |
+    ###################
+    ##### STARTUP #####
+    ###################
+    [startup]
+    # Start/Stop the module during module.start/module.stop command
+    # 1 => yes
+    # 0 => no
+    flag=1
+    ########################
+    ##### AUTORESTART ######
+    ########################
+    [autorestart]
+    # Autorestart of running modules with detected problems
+    # 1 => yes
+    # 0 => no
+    flag=1
+    flag[DEV]=0
+
+tests:
+  - command: >-
+      env CONFIG_PATH=${WORKDIR} ${CONFIG_MANAGER} get config.startup.flag
+    expected: |
+      1

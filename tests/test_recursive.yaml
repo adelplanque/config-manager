@@ -1,0 +1,26 @@
+files:
+  global/config.ini: |
+    [main]
+    key1 = value
+    key2 = {{settings.config.main.key3}}
+    key3 = {{settings.config.main.key1}}
+  global/loop.ini: |
+    [main]
+    key1 = {{settings.loop.main.key2}}
+    key2 = {{settings.loop.main.key1}}
+
+tests:
+  - command: >-
+      env CONFIG_PATH=${WORKDIR}/global
+      ${CONFIG_MANAGER} get config.main.key2
+    expected: |
+      value
+  - command: >-
+      env CONFIG_PATH=${WORKDIR}/global
+      ${CONFIG_MANAGER} get config.main.key3
+    expected: |
+      value
+  - command: >-
+      env CONFIG_PATH=${WORKDIR}/global
+      ${CONFIG_MANAGER} get loop.main.key1
+    expected: |
